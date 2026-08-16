@@ -141,11 +141,12 @@ jobs:
               if [ "$booted" = "1" ]; then echo "设备就绪"; break; fi
               sleep 5
             done
-            # 让 adb 稳定一会儿，避免 PropertyFetcher 无响应
             sleep 10
             curl -Ls "https://get.maestro.mobile.dev" | bash
             export PATH="$PATH:$HOME/.maestro/bin"
-            gradle installDebug --no-daemon
+            # 用 gradle 构建 APK，再用 adb install 安装（绕开 ddmlib 的 API level 检查）
+            gradle assembleDebug --no-daemon
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
             maestro test .maestro/ --format junit --output build/maestro/
 
       - name: 上传 Maestro 报告
