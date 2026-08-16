@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,15 +47,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TimerScreen() {
     val timer = remember { TimerState() }
+    // 用 Compose state 驱动 phase，确保状态变化触发重组、按钮 enabled 更新。
+    var phase by remember { mutableStateOf(TimerState.Phase.READY) }
     var displayMillis by remember { mutableLongStateOf(0L) }
 
     // 恢复状态后，若处于 RUNNING 则持续刷新显示。
-    LaunchedEffect(timer.phase) {
-        while (timer.phase == TimerState.Phase.RUNNING) {
+    LaunchedEffect(phase) {
+        while (phase == TimerState.Phase.RUNNING) {
             delay(200L)
             displayMillis = timer.currentMillis(System.currentTimeMillis())
         }
-        if (timer.phase != TimerState.Phase.RUNNING) {
+        if (phase != TimerState.Phase.RUNNING) {
             displayMillis = timer.currentMillis(System.currentTimeMillis())
         }
     }
@@ -87,9 +89,10 @@ fun TimerScreen() {
             Button(
                 onClick = {
                     timer.start(System.currentTimeMillis())
+                    phase = timer.phase
                     displayMillis = timer.currentMillis(System.currentTimeMillis())
                 },
-                enabled = timer.phase != TimerState.Phase.RUNNING
+                enabled = phase != TimerState.Phase.RUNNING
             ) {
                 Text("开始")
             }
@@ -97,9 +100,10 @@ fun TimerScreen() {
             OutlinedButton(
                 onClick = {
                     timer.pause(System.currentTimeMillis())
+                    phase = timer.phase
                     displayMillis = timer.currentMillis(System.currentTimeMillis())
                 },
-                enabled = timer.phase == TimerState.Phase.RUNNING
+                enabled = phase == TimerState.Phase.RUNNING
             ) {
                 Text("暂停")
             }
@@ -108,6 +112,7 @@ fun TimerScreen() {
         OutlinedButton(
             onClick = {
                 timer.reset()
+                phase = timer.phase
                 displayMillis = 0L
             }
         ) {
