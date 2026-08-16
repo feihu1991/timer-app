@@ -1,0 +1,16 @@
+appId: com.example.timer
+name: 计时器主流程
+---
+- launchApp
+- assertVisible: "计时器"
+- assertVisible: "00:00"
+# 初始：开始可用，暂停禁用
+- tapOn: "开始"
+- assertVisible: "暂停"
+# 等一下让计时器走几秒
+- extendedWaitUntil:
+    visible: "已计时"
+    timeout: 5000
+- tapOn: "暂停"
+- tapOn: "重置"
+- assertVisible: "00:00"
